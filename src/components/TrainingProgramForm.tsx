@@ -11,13 +11,15 @@ interface IFormData {
   preparationPeriod: number | '';
   sessionsPerWeek: number | '';
   startDate: string;
-  trainingDays: string;
+  trainingDays: string[];
   maxSessionDuration: number | '';
 }
 
 const TrainingProgramForm = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trainingDays, setTrainingDays] = useState<string[] | []>([]);
+
   const [formData, setFormData] = useState<IFormData>({
     age: '',
     sex: '',
@@ -28,7 +30,7 @@ const TrainingProgramForm = (): JSX.Element => {
     preparationPeriod: '',
     sessionsPerWeek: '',
     startDate: '',
-    trainingDays: '',
+    trainingDays: trainingDays,
     maxSessionDuration: '',
   });
   const [response, setResponse] = useState<string | null>(null);
@@ -40,20 +42,37 @@ const TrainingProgramForm = (): JSX.Element => {
     console.log(formData.trainingDays);
   };
 
+  const dataModel = [
+    {
+      date: 'date of training',
+      workout: 'Course à pied - 30 minutes à un rythme confortable',
+    },
+    {
+      date: 'date of training',
+      workout: 'Course à pied - 30 minutes à un rythme confortable',
+    },
+  ];
+
   const fetchOpenAIChat = async () => {
-    const prompt = `Here are the user's fitness details:
-          Age: ${formData.age}
-          Sex: ${formData.sex}
-          Weight: ${formData.weight}
-          Height: ${formData.height}
-          Favorite Sport: ${formData.favoriteSport}
-          General Goal: ${formData.generalGoal}
-          Preparation Duration: ${formData.preparationPeriod}
-          Sessions per Week: ${formData.sessionsPerWeek}
-          Start Date: ${formData.startDate}
-          Training Days in a Week: ${formData.trainingDays}
-          Maximum Session Duration: ${formData.maxSessionDuration}
-          Please generate a workout program based on these details.`;
+    const prompt = `I want you to help to make a sport program that i will use in a app developped in JS react. to  Here are the details to evaluate your training program. I am ${
+      formData.age
+    }, my Sex is ${formData.sex},my Weight: ${formData.weight},my Height: ${
+      formData.height
+    }, my Favorite Sport: ${formData.favoriteSport}, my General Goal: ${
+      formData.generalGoal
+    }, the Preparation Duration i want is ${
+      formData.preparationPeriod
+    } with Sessions ${formData.sessionsPerWeek}  per Week. The Start Date: ${
+      formData.startDate
+    }. my days of  Training  in a Week are: ${formData.trainingDays.forEach(
+      (d) => {
+        return d;
+      }
+    )} the Maximum Session Duration: ${
+      formData.maxSessionDuration
+    }. Please generate a workout program based on these details, you will generate a json file with the following structure:${dataModel}, where each object represents a day of the week and the workout to do. Please make sure that the workout is adapted to my level of fitness and that it is not too difficult. Please generate all the workouts for the next ${
+      formData.preparationPeriod
+    } weeks from the ${formData.startDate}.`;
 
     try {
       setLoading(true);
@@ -76,6 +95,8 @@ const TrainingProgramForm = (): JSX.Element => {
         }),
       })
         .then((response) => {
+          console.log(response);
+
           return response.json();
         })
         .then((data) => {
@@ -92,6 +113,18 @@ const TrainingProgramForm = (): JSX.Element => {
 
     fetchOpenAIChat();
     console.log(formData);
+  };
+
+  const changeTrainingDays = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const tab = [...trainingDays];
+      tab.push(e.target.value);
+      setTrainingDays(tab);
+      console.log(trainingDays);
+    } else {
+      setTrainingDays(trainingDays.filter((day) => day !== e.target.value));
+      console.log(trainingDays);
+    }
   };
 
   return (
@@ -188,56 +221,56 @@ const TrainingProgramForm = (): JSX.Element => {
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={1}
+            onChange={changeTrainingDays}
+            value={'monday'}
           />
           <span>Mardi</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={2}
+            onChange={changeTrainingDays}
+            value={'tuesday'}
           />
           <span>Mercredi</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={3}
+            onChange={changeTrainingDays}
+            value={'wednesday'}
           />
           <span>Jeudi</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={4}
+            onChange={changeTrainingDays}
+            value={'thursday'}
           />
           <span>Vendredi</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={5}
+            onChange={changeTrainingDays}
+            value={'friday'}
           />
           <span>Samedi</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={6}
+            onChange={changeTrainingDays}
+            value={'saturday'}
           />
           <span>Dimanche</span>
           <input
             className='ml-1 mr-4'
             type='checkbox'
             name='trainingDays'
-            onChange={handleChange}
-            value={7}
+            onChange={changeTrainingDays}
+            value={'sunday'}
           />
         </div>
         <div className='mb-2'>
