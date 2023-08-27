@@ -4,5 +4,7 @@ export async function POST(request: Request) {
 
   console.log(body);
 
+  //serialize the bodt to JSON and use it to create a new record
+
   return new Response(JSON.stringify({ status: 'ok' }));
 }
