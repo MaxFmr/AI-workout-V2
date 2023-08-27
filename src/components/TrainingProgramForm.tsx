@@ -1,11 +1,8 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from 'react';
+
 interface IFormData {
-  age: number | '';
-  sex: string;
-  weight: number | '';
-  height: number | '';
   favoriteSport: string;
   generalGoal: string;
   preparationPeriod: number | '';
@@ -21,10 +18,6 @@ const TrainingProgramForm = (): JSX.Element => {
   const [trainingDays, setTrainingDays] = useState<string[] | []>([]);
 
   const [formData, setFormData] = useState<IFormData>({
-    age: '',
-    sex: '',
-    weight: '',
-    height: '',
     favoriteSport: '',
     generalGoal: '',
     preparationPeriod: '',
@@ -39,40 +32,12 @@ const TrainingProgramForm = (): JSX.Element => {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    console.log(formData.trainingDays);
   };
 
-  const dataModel = [
-    {
-      date: 'date of training',
-      workout: 'Course à pied - 30 minutes à un rythme confortable',
-    },
-    {
-      date: 'date of training',
-      workout: 'Course à pied - 30 minutes à un rythme confortable',
-    },
-  ];
-
   const fetchOpenAIChat = async () => {
-    const prompt = `I want you to help to make a sport program that i will use in a app developped in JS react. to  Here are the details to evaluate your training program. I am ${
-      formData.age
-    }, my Sex is ${formData.sex},my Weight: ${formData.weight},my Height: ${
-      formData.height
-    }, my Favorite Sport: ${formData.favoriteSport}, my General Goal: ${
-      formData.generalGoal
-    }, the Preparation Duration i want is ${
-      formData.preparationPeriod
-    } with Sessions ${formData.sessionsPerWeek}  per Week. The Start Date: ${
-      formData.startDate
-    }. my days of  Training  in a Week are: ${formData.trainingDays.forEach(
-      (d) => {
-        return d;
-      }
-    )} the Maximum Session Duration: ${
-      formData.maxSessionDuration
-    }. Please generate a workout program based on these details, you will generate a json file with the following structure:${dataModel}, where each object represents a day of the week and the workout to do. Please make sure that the workout is adapted to my level of fitness and that it is not too difficult. Please generate all the workouts for the next ${
-      formData.preparationPeriod
-    } weeks from the ${formData.startDate}.`;
+    const prompt = `en suivant ce model de data en exemple { "date": "2023-09-01", "workout": "Course à pied - 30 minutes à un rythme confortable"
+    }, peux tu me générer un fichier json ou chaque objet est un jour d'entrainement, avec ${formData.sessionsPerWeek} jours d'entrainement par semaine, avec un début ${formData.startDate}. Je doit avoir ces types de sports ${formData.favoriteSport}. l'objectif est ${formData.generalGoal}.le programme va durer ${formData.preparationPeriod} semaines. chaque séance ne peut excéder ${formData.maxSessionDuration} minutes. Les jours d'entrainement de la semaine seront ${formData.trainingDays} génère moi un json avec ces données, veille à ce que les séances soient variées et que les jours d'entrainement soient respectés. Donnes moi l'etiereté du programme en json`;
+    console.log(prompt);
 
     try {
       setLoading(true);
@@ -112,7 +77,21 @@ const TrainingProgramForm = (): JSX.Element => {
     e.preventDefault();
 
     fetchOpenAIChat();
+
     console.log(formData);
+    console.log('response', response);
+  };
+
+  const serialize = (response: string) => {
+    const body = { text: response };
+
+    fetch('/serial', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body), // add 'as BodyInit' to explicitly specify the type
+    });
   };
 
   const changeTrainingDays = (e: ChangeEvent<HTMLInputElement>) => {
@@ -131,43 +110,9 @@ const TrainingProgramForm = (): JSX.Element => {
     <>
       <form onSubmit={handleSubmit}>
         {error && <p className='text-red-500'>{error}</p>}
+
         <div className='mb-2'>
-          <label>Age: </label>
-          <input
-            className='text-black'
-            type='number'
-            name='age'
-            onChange={handleChange}
-          />
-        </div>
-        <div className='mb-2'>
-          <label>Sex: </label>
-          <select className='text-black' name='sex' onChange={handleChange}>
-            <option value=''>Select...</option>
-            <option value='male'>Male</option>
-            <option value='female'>Female</option>
-          </select>
-        </div>
-        <div className='mb-2'>
-          <label>Weight (kg): </label>
-          <input
-            className='text-black'
-            type='number'
-            name='weight'
-            onChange={handleChange}
-          />
-        </div>
-        <div className='mb-2'>
-          <label>Height (cm): </label>
-          <input
-            className='text-black'
-            type='number'
-            name='height'
-            onChange={handleChange}
-          />
-        </div>
-        <div className='mb-2'>
-          <label>Most Practiced Sport: </label>
+          <label>Vos sports préférés : </label>
           <input
             className='text-black'
             type='text'
@@ -176,7 +121,7 @@ const TrainingProgramForm = (): JSX.Element => {
           />
         </div>
         <div className='mb-2 flex'>
-          <label>General Goal: </label>
+          <label>Votre objectif, chiffré ou non: </label>
           <textarea
             className='ml-2 text-black'
             name='generalGoal'
@@ -184,7 +129,7 @@ const TrainingProgramForm = (): JSX.Element => {
           />
         </div>
         <div className='mb-2'>
-          <label>Preparation Duration (8 to 24 weeks): </label>
+          <label>Durée du programme (8 à 24 semaines): </label>
           <input
             className='text-black'
             type='number'
@@ -195,7 +140,7 @@ const TrainingProgramForm = (): JSX.Element => {
           />
         </div>
         <div className='mb-2'>
-          <label>Sessions per Week: </label>
+          <label>Nombre de séances par semaine </label>
           <input
             className='text-black'
             type='number'
@@ -204,7 +149,7 @@ const TrainingProgramForm = (): JSX.Element => {
           />
         </div>
         <div>
-          <label>Start Date: </label>
+          <label>Date de début : </label>
           <input
             className='text-black'
             type='date'
@@ -214,7 +159,7 @@ const TrainingProgramForm = (): JSX.Element => {
         </div>
         <div className='flex-col'>
           <div>
-            <label>Training Days in a Week: </label>
+            <label>Vos jours d’entrainement dans la semaine: </label>
           </div>
           <span>Lundi</span>
           <input
@@ -274,7 +219,7 @@ const TrainingProgramForm = (): JSX.Element => {
           />
         </div>
         <div className='mb-2'>
-          <label>Maximum Session Duration (minutes): </label>
+          <label>Durée maximale d’une séance (minutes): </label>
           <input
             className='text-black'
             type='number'
@@ -292,8 +237,17 @@ const TrainingProgramForm = (): JSX.Element => {
         </div>
       )}
       {!loading && response && (
-        <div className='flex justify-center'>
-          <p className='text-white'>{response}</p>
+        <div className='flex ml-10 text-white max-w-[100vw]'>
+          <pre className='text-white'>
+            <code>{response}</code>
+          </pre>
+          <button
+            className='ml-10'
+            onClick={() => {
+              serialize(response);
+            }}>
+            Serialize
+          </button>
         </div>
       )}
     </>
